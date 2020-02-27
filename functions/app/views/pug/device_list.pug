@@ -1,0 +1,9 @@
+extends layout
+block declare
+    
+block content
+    h1 #{title}
+    each device in Object.keys(data)
+        a(href=`./data/${device}`)
+            h2 #{device} : #{data[device].name}            
+        p 管理者: #{data[device].admin}

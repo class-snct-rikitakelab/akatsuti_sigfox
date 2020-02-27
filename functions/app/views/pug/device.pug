@@ -1,0 +1,6 @@
+extends layout
+block content
+    h1 #{title} : #{data.name}
+    p 管理者 #{data.admin}
+    a(href=`../data/${title}`)
+        p 状態を確認する

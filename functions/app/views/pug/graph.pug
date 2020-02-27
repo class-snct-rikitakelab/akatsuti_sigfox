@@ -1,0 +1,139 @@
+extends layout
+
+block declare
+    -var title = `${device} の状態`
+    -
+        data.waterflowData.sort((a,b)=>{
+            if(a.x<b.x) return -1;
+            if(a.x>b.x) return 1;
+            return 0;
+        })
+        data.waterflowData.forEach((value)=>{
+            value.x = value.x * 1000;
+        })
+        data.turbidityData.sort((a,b)=>{
+            if(a.x<b.x) return -1;
+            if(a.x>b.x) return 1;
+            return 0;     
+        })
+        data.turbidityData.forEach((value)=>{
+            value.x = value.x * 1000;
+        })
+
+        var sortedData = Object.values(data.data).sort((a,b)=>{
+            if(a.time<b.time) return -1;
+            if(a.time>b.time) return 1;
+        })
+block content
+    h1 #{title}
+    a(href= `../../app/device/${device}`)
+        p=`${device}の情報を確認する`
+    div.graph.flexbox-container
+        div#turbidityLine.flexbox-item
+            h2(style="text-align:center;") 濁度
+            canvas(width="300",height="150")
+        div#waterflowLine.flexbox-item
+            h2(style="text-align:center;") 流量
+            canvas(width="300",height="150")
+    table
+        tr
+            th 時間
+            th 流量
+            th 濁度
+            th 判定結果
+        each value in sortedData
+            -var time = new Date(value.time*1000)
+            -
+                var result;
+                if(3.1 <= value.turbidity){
+                    result = "清水";
+                } else {
+                    result = "濁水";
+                }
+
+            tr
+                td !{`${time.getMonth()+1}月${time.getDate()}日 ${time.toLocaleTimeString()}`}
+                td !{value.waterflow}
+                td !{value.turbidity}
+                td !{result}
+
+        //- each turbidity in data.turbidityData 
+        //-     -var time = new Date(turbidity.x)    
+        //-     tr 
+        //-         -
+        //-             var result;
+        //-             if(2 <= turbidity.y){
+        //-                result = "清水";
+        //-             } else {
+        //-                 result = "濁水";
+        //-             }
+        //-         td.table-time !{`${time.getMonth()+1}月${time.getDate()}日 ${time.toLocaleTimeString()}`}
+        //-         //- td.table-waterflow !{waterflow.y}
+        //-         td.table-turbidity !{turbidity.y}
+        //-         td.table-result !{result}
+
+
+    //- table(style="margin:1em auto auto auto;")
+    //-         tr
+    //-             th 時間
+    //-             th 測定値
+
+         
+    //-         each waterflow in data.waterflowData 
+    //-             -var time = new Date(waterflow.x)
+    //-             tr 
+    //-                 td.table-time !{`${time.getMonth()+1}月${time.getDate()}日 ${time.toLocaleTimeString()}`}
+    //-                 td.table-value !{waterflow.y}
+
+    //- pre !{JSON.stringify(data.data,null,"\t")}
+    script(type='text/javascript').
+        var json = !{JSON.stringify(data)};
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js")
+    script.
+        const turbidityGraphData = {
+            datasets:[{
+                    //- label:"濁度",
+                    data: json.turbidityData,
+                }
+            ]
+        }
+        const waterflowGraphData = {
+            datasets:[{
+                    //- label:"流量",
+                    data: json.waterflowData,
+                }
+            ]
+        }
+        const option = {
+            legend: {
+                display: false,
+            },
+            scales:{
+                xAxes:[{
+                    type:'time',
+                    distribution:'linear',
+                    time: {
+                        displayFormats: {
+                            //- hour:'MMM D'
+                            //- hour: 'a h:mm'
+                            unit: 'minute'
+                        }
+                    }
+                }],
+                yAxes: [{
+                    beginAtZero: true
+                }]
+            }
+        }
+
+        var turbidityLine = new Chart(document.querySelector("#turbidityLine canvas"),{
+            type:'line',
+            data: turbidityGraphData,
+            options:option
+        })
+
+        var waterflowLine = new Chart(document.querySelector("#waterflowLine canvas"),{
+            type:'line',
+            data: waterflowGraphData,
+            options:option
+        })

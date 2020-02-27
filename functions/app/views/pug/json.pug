@@ -1,0 +1,8 @@
+extends layout
+
+block content
+    -var title = "JSON FILE"
+    h1 #{title}
+    pre !{JSON.stringify(data,null,"\t")}
+    script(type='text/javascript').
+        var json = !{JSON.stringify(data)};
